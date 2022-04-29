@@ -57,14 +57,6 @@ def main():
             ),
             unsafe_allow_html=True,
         )
-        st.markdown(
-            download_csv(
-                robust_zscore_normalised,
-                "robust_zscore_normalised.csv",
-                "Download robust zscore normalised data",
-            ),
-            unsafe_allow_html=True,
-        )
 
         ###
         st.subheader("Plot the results")
