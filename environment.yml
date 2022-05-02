@@ -4,7 +4,8 @@ channels:
   - conda-forge
 dependencies:
   - libgcc
-  - numpy
-  - pandas
   - matplotlib
+  - numpy
   - openpyxl
+  - pandas
+  - seaborn

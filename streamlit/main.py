@@ -1,6 +1,7 @@
-import streamlit as st
-import matplotlib.pyplot as plt
 from utils import *
+import matplotlib.pyplot as plt
+import seaborn as sns
+import streamlit as st
 
 
 def main():
@@ -34,13 +35,20 @@ def main():
 
         st.dataframe(zfactors)
 
-        control_normalised = control_based_norm(alldata, negative_controls)
-        zscore_normalised = zscore_norm(alldata, negative_controls, positive_controls)
-        robust_zscore_normalised = robust_zscore_norm(
+        control_normalised = control_based_norm(
             alldata, negative_controls, positive_controls
         )
+        zscore_normalised = zscore_norm(alldata, negative_controls, positive_controls)
 
         st.subheader("Download the normalized data")
+        st.markdown(
+            download_csv(
+                zfactors,
+                "zfactors.csv",
+                "Download zfactors",
+            ),
+            unsafe_allow_html=True,
+        )
         st.markdown(
             download_csv(
                 control_normalised,
@@ -60,48 +68,73 @@ def main():
 
         ###
         st.subheader("Plot the results")
+        zscore_threshold = float(
+            st.text_input("Select a threshold based on z-score to filter hits", "-1")
+        )
+        control_threshold = float(
+            st.text_input("Select a threshold based on control to filter hits", "0.5")
+        )
 
+        control_normalised.color[
+            control_normalised.Average > control_threshold
+        ] = "negative hits"
+        zscore_normalised.color[
+            zscore_normalised.Average > zscore_threshold
+        ] = "negative hits"
         col1, col2 = st.columns(2)
 
         fig = plt.figure()
-        plt.scatter(control_normalised.index, control_normalised.Average)
-        plt.scatter(
-            control_normalised.index[control_normalised.label.isin(positive_controls)],
-            control_normalised.Average[
-                control_normalised.label.isin(positive_controls)
-            ],
-            color="r",
+
+        ax = sns.scatterplot(
+            x=range(len(zscore_normalised)),
+            y="Average",
+            hue="color",
+            data=zscore_normalised,
+            ax=fig.add_subplot(111),
         )
-        plt.scatter(
-            control_normalised.index[control_normalised.label.isin(negative_controls)],
-            control_normalised.Average[
-                control_normalised.label.isin(negative_controls)
-            ],
-            color="green",
-        )
-        plt.title("Control normalised data")
-        plt.legend(["All", "Positive controls", "Negative controls"])
-        plt.ylabel("Average control normalised data")
+
+        ax.set_ylabel("Normalised average")
+
         col1.pyplot(fig)
-        plt.show()
 
         fig = plt.figure()
-        plt.scatter(zscore_normalised.index, zscore_normalised.Average)
-        plt.scatter(
-            zscore_normalised.index[zscore_normalised.label.isin(positive_controls)],
-            zscore_normalised.Average[zscore_normalised.label.isin(positive_controls)],
-            color="r",
+
+        ax = sns.scatterplot(
+            x=range(len(control_normalised)),
+            y="Average",
+            hue="color",
+            data=control_normalised,
+            ax=fig.add_subplot(111),
         )
-        plt.scatter(
-            zscore_normalised.index[zscore_normalised.label.isin(negative_controls)],
-            zscore_normalised.Average[zscore_normalised.label.isin(negative_controls)],
-            color="green",
-        )
-        plt.title("Z-score normalised data")
-        plt.legend(["All", "Positive controls", "Negative controls"])
-        plt.ylabel("Average Z-score")
+
+        ax.set_ylabel("Normalised average")
+
         col2.pyplot(fig)
-        plt.show()
+
+        st.subheader("Download the normalized and filtered data")
+
+        st.markdown(
+            download_csv(
+                control_normalised[
+                    ~(control_normalised.label.isin(positive_controls))
+                    & (control_normalised.Average < control_threshold)
+                ],
+                f"control_normalised_filtered_{control_threshold}.csv",
+                "Download control normalised filtered data",
+            ),
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            download_csv(
+                zscore_normalised[
+                    ~(zscore_normalised.label.isin(positive_controls))
+                    & (zscore_normalised.Average < zscore_threshold)
+                ],
+                f"zscore_normalised_filtered{zscore_threshold}.csv",
+                "Download zscore normalised filtered data",
+            ),
+            unsafe_allow_html=True,
+        )
 
 
 if __name__ == "__main__":

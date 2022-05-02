@@ -55,7 +55,7 @@ def split_replicates(alldata):
     return alldata
 
 
-def control_based_norm(data, negative_controls):
+def control_based_norm(data, negative_controls, positive_controls):
     """
     This function normalizes the data based on the negative controls.
     """
@@ -64,6 +64,9 @@ def control_based_norm(data, negative_controls):
     data["value"] = data["value"] / average
     data = split_replicates(data)
     data["Average"] = data.iloc[:, 2:].mean(axis=1)
+    data["color"] = "hits"
+    data.loc[data.label.isin(positive_controls), "color"] = "positive control"
+    data.loc[data.label.isin(negative_controls), "color"] = "negative control"
     return data
 
 
@@ -81,23 +84,9 @@ def zscore_norm(data, negative_controls, positive_controls):
     ].std()
     data = split_replicates(data)
     data["Average"] = data.iloc[:, 2:].mean(axis=1)
-    return data
-
-
-def robust_zscore_norm(data, negative_controls, positive_controls):
-    """
-    This function normalizes the data based on the negative controls.
-    """
-    data = data.copy()
-    data_subset = data[
-        ~(data.label.isin(negative_controls)) & (~(data.label.isin(positive_controls)))
-    ].copy()
-
-    data["value"] = (data["value"] - data_subset["value"].median()) / data_subset[
-        "value"
-    ].mad()
-    data = split_replicates(data)
-    data["Average"] = data.iloc[:, 2:].mean(axis=1)
+    data["color"] = "hits"
+    data.loc[data.label.isin(positive_controls), "color"] = "positive control"
+    data.loc[data.label.isin(negative_controls), "color"] = "negative control"
     return data
 
 
