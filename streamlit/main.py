@@ -76,19 +76,22 @@ def main():
         )
 
         control_normalised.color[
-            control_normalised.Average > control_threshold
+            (control_normalised.Average > control_threshold)
+            & (control_normalised.color != "negative control")
         ] = "negative hits"
         zscore_normalised.color[
-            zscore_normalised.Average > zscore_threshold
+            (zscore_normalised.Average > zscore_threshold)
+            & (zscore_normalised.color != "negative control")
         ] = "negative hits"
         col1, col2 = st.columns(2)
-
+        hue_order = ["negative hits", "negative control", "hits", "positive control"]
         fig = plt.figure()
 
         ax = sns.scatterplot(
             x=range(len(zscore_normalised)),
             y="Average",
             hue="color",
+            hue_order=hue_order,
             data=zscore_normalised,
             ax=fig.add_subplot(111),
         )
@@ -103,6 +106,7 @@ def main():
             x=range(len(control_normalised)),
             y="Average",
             hue="color",
+            hue_order=hue_order,
             data=control_normalised,
             ax=fig.add_subplot(111),
         )
