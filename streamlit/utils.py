@@ -42,9 +42,10 @@ def split_replicates(alldata):
     """
     alldata = alldata.copy()
     alldata[["plate", "replicate"]] = alldata["experiment"].str.extract(
-        r"([0-9]*)-([0-9])", expand=True
+        r"([\w+]*)-([0-9])", expand=True
     )
     alldata.drop("experiment", axis=1, inplace=True)
+    print(alldata.head())
     alldata = pd.pivot(
         alldata, index=["label", "plate"], columns="replicate", values="value"
     ).reset_index()
